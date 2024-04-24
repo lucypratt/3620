@@ -12,11 +12,14 @@ let newTermShow = false
 let newSetShow = false
 let flashcardsSection: HTMLDivElement
 
+let categories = ['Language', 'Programming', 'Science']
+
 let studySet = [
 	{
 		id: 1,
 		title: "Spanish Vocabulary",
 		description: "Basic Spanish vocabulary words",
+		category: "Language",
 		terms: [
 			{
 				id: 1,
@@ -74,6 +77,7 @@ let studySet = [
 		id: 2,
 		title: "JavaScript Basics",
 		description: "Fundamental concepts in JavaScript",
+		category: "Programming",
 		terms: [
 			{
 				id: 1,
@@ -103,7 +107,7 @@ function chooseCurrentSet(setName: string) {
 }
 
 function tableMapperValues(data: any[], keys: string[]): TableSource['body'] {
-  return data.map(item => keys.map(key => item[key]));
+  return data.map(item => keys.map(key => item[key]))
 }
 
 const tableSimple: TableSource = {
@@ -111,12 +115,12 @@ const tableSimple: TableSource = {
 	body: tableMapperValues(currentSet.terms, ['id', 'name', 'definition']),
 }
 $: {
-    tableSimple.body = tableMapperValues(currentSet.terms, ['id', 'name', 'definition']);
+    tableSimple.body = tableMapperValues(currentSet.terms, ['id', 'name', 'definition'])
 }
 
 
-let isFlipped = false;
-let front: boolean = true;
+let isFlipped = false
+let front: boolean = true
 	let back: boolean
 
   function toggleCard() {
@@ -139,15 +143,15 @@ let front: boolean = true;
 		elemCarousel.scrollLeft === 0
 			? elemCarousel.clientWidth * elemCarousel.childElementCount // loop
 			: elemCarousel.scrollLeft - elemCarousel.clientWidth; // step left
-	elemCarousel.scroll(x, 0);
+	elemCarousel.scroll(x, 0)
 }
 
 function carouselRight(): void {
 	const x =
 		elemCarousel.scrollLeft === elemCarousel.scrollWidth - elemCarousel.clientWidth
 			? 0 // loop
-			: elemCarousel.scrollLeft + elemCarousel.clientWidth; // step right
-	elemCarousel.scroll(x, 0);
+			: elemCarousel.scrollLeft + elemCarousel.clientWidth // step right
+	elemCarousel.scroll(x, 0)
 }
 	
 let newTermName = ''
@@ -188,17 +192,19 @@ function showFlashcards() {
 
 let newSetTitle = ''
 let newSetDescription = ''
+let newSetCategory = ''
 
-let newSetTerms: { id: number, name: string, definition: string }[] = [{ id: 1, name: '', definition: '' }];
+let newSetTerms: { id: number, name: string, definition: string, category: string }[] = [{ id: 1, name: '', definition: '', category: '' }]
 
 function addNewTermField() {
     const newId = newSetTerms.length > 0 ? newSetTerms[newSetTerms.length - 1].id + 1 : 1
-    newSetTerms = [...newSetTerms, { id: newId, name: '', definition: '' }]
+    newSetTerms = [...newSetTerms, { id: newId, name: '', definition: '', category: ''}]
 }
 
 function removeNewTerm(index: number) {
-    newSetTerms.splice(index, 1)
+    newSetTerms = newSetTerms.filter((_, i) => i !== index)
 }
+
 
 function addNewSet() {
 	if (newSetTitle && newSetDescription) {
@@ -206,6 +212,7 @@ function addNewSet() {
             id: studySet.length + 1,
             title: newSetTitle,
             description: newSetDescription,
+			category: newSetCategory,
             terms: newSetTerms.map(term => ({ ...term })) 
         }
         studySet = [...studySet, newSet]
@@ -213,7 +220,7 @@ function addNewSet() {
 
         newSetTitle = ''
         newSetDescription = ''
-        newSetTerms = [{ id: 1, name: '', definition: '' }]
+        newSetTerms = [{ id: 1, name: '', definition: '', category: '' }]
     } else {
         alert('Please enter both set title and description.')
     }
@@ -223,6 +230,65 @@ $: {
     console.log('Study Set changed:', studySet)
 }
 
+let newCategoryName = ''
+let newCategoryShow = false
+
+function addNewCategory() {
+    if (newCategoryName.trim() !== '') {
+        categories = [...categories, newCategoryName]
+        newCategoryName = ''
+    }
+}
+
+
+let editedCategory = false
+let newEditCategory = ''
+    let deleteConfirmation = false
+
+    
+
+	function saveEditedCategory(categoryIndex: number) {
+    if (editedCategory && newEditCategory.trim() !== '') {
+        const index = categories.findIndex(cat => cat === categories[categoryIndex])
+        
+        if (index !== -1) {
+            const oldCategoryName = categories[index]
+            categories[index] = newEditCategory.trim()
+            
+            studySet.forEach(set => {
+                if (set.category === oldCategoryName) {
+                    set.category = newEditCategory.trim()
+                }
+            })
+    
+            editedCategory = false
+            newEditCategory = ''
+        } else {
+            console.error('Category not found.')
+        }
+    } else {
+        console.error('Invalid operation: Either category name is empty or no category is being edited.')
+    }
+}
+
+
+    function deleteCategory(categoryName: any) {
+	
+            categories = categories.filter(cat => cat !== categoryName)
+            deleteConfirmation = false
+        
+    }
+
+	function saveCategory(set: any) {
+    const index = studySet.findIndex(item => item.id === set.id)
+    
+    if (index !== -1) {
+        studySet[index].category = set.category
+        console.log("Category updated successfully:", studySet[index].category)
+    } else {
+        console.error("Set not found in studySet array")
+    }
+}
 
 
 </script>
@@ -233,7 +299,20 @@ $: {
 	<div>
 		<div class="flex justify-between">
 			<h2 class="text-2xl font-bold">My Study Sets</h2>
-			<button class="btn variant-outline-primary" on:click={() => {newSetShow = true}}>Add A Set</button>
+			<div>
+				<button class="btn variant-outline-primary" on:click={() => {newCategoryShow = true}}>Add A Category</button>
+				{#if newCategoryShow}
+				<div class="flex my-2">
+					<input type="text" placeholder="Enter new category" class="p-2 rounded-md" bind:value={newCategoryName}>
+					<button class="ml-2 btn variant-filled-primary" on:click={addNewCategory}>Add</button>
+				</div>
+				
+				{/if}
+
+				<button class="btn variant-outline-primary" on:click={() => {newSetShow = true}}>Add A Set</button>
+				
+			</div>
+			
 		</div>
 
 		{#if newSetShow}
@@ -243,6 +322,12 @@ $: {
 			<input type="text" placeholder="Enter set description" class="p-2 rounded-md" bind:value={newSetDescription}>
 
 			</div>
+			<select class="p-2 mt-4 rounded-md" bind:value={newSetCategory}>
+				<option value="">Select set category</option>
+				{#each categories as category}
+					<option value={category}>{category}</option>
+				{/each}
+			</select>
 			
 			{#each newSetTerms as term, index}
 			<div class="flex gap-2 my-2">
@@ -268,23 +353,46 @@ $: {
 		</div>
 		
 		{/if}
-
-
-		<div class="flex gap-4 my-4 border-2 border-primary-500 rounded-lg">
-			<!-- svelte-ignore a11y-no-static-element-interactions -->
-			{#each studySet as set}
-			<!-- svelte-ignore a11y-click-events-have-key-events -->
-			<div class="card m-4" on:click={() => chooseCurrentSet(set.title)}>
-				<header class="card-header text-xl font-bold underline underline-offset-2">{set.title}</header>
-		<section class="p-4">{set.description}</section>
-		<footer class="card-footer"><span class="underline">Terms: </span>{set.terms.length}</footer>
-			</div>
 	
+		<div class="flex gap-4">
+			{#each categories as category, index}
+			<div>
+				<div class="flex gap-4">
+					{#if editedCategory}
+					<input type="text" class="p-2 rounded-md" bind:value={newEditCategory} />
+					<button class="btn variant-filled-primary" on:click={() => saveEditedCategory(index)}>Save</button>
+					<button class="btn variant-outline-primary" on:click={() => {editedCategory = true}}>Cancel</button>
+					{:else}
+					<h2 class="text-xl font-bold">{category}</h2>
+					<button class="items-center my-auto" on:click={() => {editedCategory = true}}><i class="fa-regular fa-pen-to-square"></i></button>
+					<button class="items-center my-auto" on:click={deleteCategory(category)}><i class="fa-solid fa-trash"></i></button>
+					{/if}
+				</div>
+		
+				<div class="flex gap-4 my-4 border-2 border-primary-500 rounded-lg">
+					{#each studySet.filter(set => set.category === category) as set}
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<!-- svelte-ignore a11y-no-static-element-interactions -->
+					<div class="card m-4" on:click={() => chooseCurrentSet(set.title)}>
+						<header class="card-header text-xl font-bold underline underline-offset-2">{set.title}</header>
+						<div class="flex gap-2 items-center">
+							
+                <select bind:value={set.category} class=" mx-4 mt-2 p-2 rounded-md">
+                    {#each categories as cat}
+                        <option value={cat}>{cat}</option>
+                    {/each}
+                </select>
+                
+						</div>
+						<section class="p-4">{set.description}</section>
+						<footer class="card-footer"><span class="underline">Terms: </span>{set.terms.length}</footer>
+					</div>
+					{/each}
+				</div>
+			</div>
 			{/each}
 		</div>
 		
-	</div>
-
 
 	<!--Choose How to Study-->
 	<div>
