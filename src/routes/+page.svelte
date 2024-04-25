@@ -2,6 +2,9 @@
 
 import { Table } from '@skeletonlabs/skeleton'
 import type { TableSource } from '@skeletonlabs/skeleton'
+import { onMount } from 'svelte'
+import Memory from '../lib/components/Memory.svelte'
+import Quiz from '../lib/components/Quiz.svelte'
 
 
 
@@ -13,6 +16,8 @@ let newSetShow = false
 let flashcardsSection: HTMLDivElement
 
 let categories = ['Language', 'Programming', 'Science']
+
+let scores: number[] = []
 
 let studySet = [
 	{
@@ -106,17 +111,10 @@ function chooseCurrentSet(setName: string) {
 	console.log(currentSet)
 }
 
-function tableMapperValues(data: any[], keys: string[]): TableSource['body'] {
-  return data.map(item => keys.map(key => item[key]))
-}
 
-const tableSimple: TableSource = {
-	head: ['Term #', 'Name', 'Definition'],
-	body: tableMapperValues(currentSet.terms, ['id', 'name', 'definition']),
-}
-$: {
-    tableSimple.body = tableMapperValues(currentSet.terms, ['id', 'name', 'definition'])
-}
+function removeTerm(id: number) {
+    currentSet.terms = currentSet.terms.filter(term => term.id !== id)
+  }
 
 
 let isFlipped = false
@@ -175,8 +173,9 @@ function addNewTerm() {
 }
 
 function addTermToSet(newTerm: { id: number, name: string, definition: string }) {
-    currentSet.terms.push(newTerm)
-    tableSimple.body = tableMapperValues(currentSet.terms, ['id', 'name', 'definition'])
+	currentSet = {
+        ...currentSet,
+        terms: [...currentSet.terms, newTerm]}
 	newTermShow = false
 }
 
@@ -234,7 +233,7 @@ let newCategoryName = ''
 let newCategoryShow = false
 
 function addNewCategory() {
-    if (newCategoryName.trim() !== '') {
+    if (newCategoryName !== '') {
         categories = [...categories, newCategoryName]
         newCategoryName = ''
     }
@@ -248,16 +247,16 @@ let newEditCategory = ''
     
 
 	function saveEditedCategory(categoryIndex: number) {
-    if (editedCategory && newEditCategory.trim() !== '') {
+    if (editedCategory && newEditCategory !== '') {
         const index = categories.findIndex(cat => cat === categories[categoryIndex])
         
         if (index !== -1) {
             const oldCategoryName = categories[index]
-            categories[index] = newEditCategory.trim()
+            categories[index] = newEditCategory
             
             studySet.forEach(set => {
                 if (set.category === oldCategoryName) {
-                    set.category = newEditCategory.trim()
+                    set.category = newEditCategory
                 }
             })
     
@@ -279,17 +278,27 @@ let newEditCategory = ''
         
     }
 
-	function saveCategory(set: any) {
-    const index = studySet.findIndex(item => item.id === set.id)
+	function updateTermName(event: Event, termId: number) {
+    const newName = (event.target as HTMLTableCellElement).innerText
+    const termIndex = currentSet.terms.findIndex(term => term.id === termId)
+      currentSet.terms[termIndex].name = newName
     
-    if (index !== -1) {
-        studySet[index].category = set.category
-        console.log("Category updated successfully:", studySet[index].category)
-    } else {
-        console.error("Set not found in studySet array")
-    }
-}
+  }
 
+  function updateTermDefinition(event: Event, termId: number) {
+    const newDefinition = (event.target as HTMLTableCellElement).innerText
+    const termIndex = currentSet.terms.findIndex(term => term.id === termId)
+      currentSet.terms[termIndex].definition = newDefinition
+    
+  }
+
+let total = 0
+$: total = currentSet.terms.length
+  function handleSaveScore(event) {
+	
+    const score = event.detail.score;
+    scores = [...scores, score]; // Store the score in the scores array
+  }
 
 </script>
 
@@ -398,8 +407,8 @@ let newEditCategory = ''
 	<div>
 		<h2 class="text-2xl font-bold text-center my-5">Choose How to Study</h2>
 		<div class="flex gap-4 justify-center">
-			<button class="btn variant-outline-primary p-20 font-bold text-3xl hover:variant-filled-primary">Quiz</button>
-			<button class="btn variant-outline-primary p-20 font-bold text-3xl hover:variant-filled-primary">Memory<br> Game</button>
+			<button class="btn variant-outline-primary p-20 font-bold text-3xl hover:variant-filled-primary" on:click={() => {quiz = true}}>Quiz</button>
+			<button class="btn variant-outline-primary p-20 font-bold text-3xl hover:variant-filled-primary" on:click={() => {memory = true}}>Memory<br> Game</button>
 			<button class="btn variant-outline-primary p-20 font-bold text-3xl hover:variant-filled-primary" on:click={showFlashcards}>Flash<br> Cards</button>
 		</div>
 
@@ -425,17 +434,60 @@ let newEditCategory = ''
 		{/if}
 
 		<div class="mt-4">
-			<Table source={tableSimple} />
+			<table class="min-w-full table-auto bg-white shadow-md rounded-lg overflow-hidden">
+				<thead>
+				  <tr>
+					<th class="px-4 py-2 text-left">Name</th>
+					<th class="px-4 py-2 text-left">Definition</th>
+					<th class="px-4 py-2 text-left">Actions</th>
+				  </tr>
+				</thead>
+				<tbody>
+				  {#each currentSet.terms as term (term.id)}
+				  <tr class="border-b border-gray-200 hover:bg-gray-100">
+					<td class="px-4 py-2" contenteditable on:input={(event) => updateTermName(event, term.id)}>{term.name}</td>
+					<td class="px-4 py-2" contenteditable on:input={(event) => updateTermDefinition(event, term.id)}>{term.definition}</td>
+					<td class="px-4 py-2">
+					  <button class="text-primary-600 hover:text-primary-900" on:click={() => removeTerm(term.id)}>
+						<i class="fa-solid fa-trash"></i>
+					  </button>
+					</td>
+				  </tr>
+				  {/each}
+				</tbody>
+			  </table>
 			
 		</div>
+
 	</div>
 	{/if}
 
 	{#if quiz}
 
+	<div class="flex gap-2 w-1/2 mt-5 mx-auto">
+		<h2 class="text-xl font-bold text-center ">Quiz Scores:</h2>
+		{#each scores as score}
+		<div class="">
+			<p class="text-xl font-bold"> {score}/{total}, </p>
+		</div>
+			
+		{/each}
+	</div>
+
+
+	<div class="mx-auto w-1/2 my-4 flex justify-between">
+		<Quiz {currentSet} on:saveScore={handleSaveScore} />
+		<i class="fa-solid fa-x inline-block align-middle hover:scale-110 hover:text-primary-500" on:click={() => { quiz = false }}></i>
+		
+	</div>
+
+	
+
+
 	{/if}
 
 	{#if memory}
+	<!-- <Memory {currentSet} />-->
 
 	{/if}
 

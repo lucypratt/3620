@@ -1,60 +1,39 @@
-<script>
-    /**
-	 * @type {any[]}
-	 */
-     export let terms;
-  
-    /**
-	 * @type {any[]}
-	 */
-    let flippedCards = [];
-  
-    /**
-     * @param {any} termId
-     */
-    function flipCard(termId) {
-      const index = terms.findIndex((/** @type {{ id: any; }} */ term) => term.id === termId);
-      if (index !== -1 && !terms[index].flipped && flippedCards.length < 2) {
-        terms[index].flipped = true;
-        flippedCards.push(terms[index]);
-      }
-    }
-  
-    function checkMatch() {
-      if (flippedCards.length === 2) {
-        if (flippedCards[0].id === flippedCards[1].id) {
-          // Match found
-          // You can implement additional logic here like removing matched cards or updating score
-        } else {
-          // No match, flip cards back
-          flippedCards.forEach(card => {
-            const index = terms.findIndex((/** @type {{ id: any; }} */ term) => term.id === card.id);
-            if (index !== -1) {
-              terms[index].flipped = false;
+<script lang='ts'>
+
+ interface Term {
+  name: string;
+  definition: string;
+}
+
+ interface Set {
+  terms: Term[];
+}
+
+    export let terms: Set;
+
+    type State = 'start' | 'playing' | 'won' | 'lost'
+
+    let state: State = 'start'
+
+    let size = 20
+    let grid = createGrid()
+
+    function createGrid() {
+        let cards = new Set<string>()
+            let maxSize = size / 2
+
+            while (cards.size < maxSize) {
+                let randomIndex = Math.floor(Math.random() * terms.terms.length)
+                cards.add(terms.terms[randomIndex].name)
+                
             }
-          });
-        }
-        flippedCards = []; // Reset flipped cards array
-      }
+
+            return shuffle([...cards, ...cards])
     }
-  </script>
-  
-  <section>
-    <h3>Memory Game</h3>
-  
-    <div class="grid grid-cols-3 gap-4">
-      {#each terms as term}
-        <div class="card" on:click="{() => flipCard(term.id)}">
-          {#if term.flipped}
-            <div>{term.name}</div>
-            <div>{term.definition}</div>
-          {:else}
-            <div>?</div>
-          {/if}
-        </div>
-      {/each}
-    </div>
-  
-    <button on:click="{checkMatch}">Check Match</button>
-  </section>
-  
+
+    function shuffle<Items>(array: Items[]) {
+        return array.sort(() => Math.random() - 0.5)
+    }
+
+    console.log(grid)
+</script>

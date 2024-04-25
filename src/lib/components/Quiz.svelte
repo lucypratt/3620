@@ -1,46 +1,124 @@
-<script>
-    /**
-	 * @type {string | any[]}
-	 */
-     export let terms;
+<script lang="ts">
+    import { onMount, createEventDispatcher  } from 'svelte';
+    
+    export let currentSet: {
+      id: number,
+      title: string,
+      description: string,
+      category: string,
+      terms: { id: number, name: string, definition: string }[]
+    };
   
-    let currentQuestion = 0;
-    let score = 0;
+    let currentTermIndex = 0
+    let selectedAnswer: string = ''
+    let correctAnswer: string = ''
+    let answerChoices: string[] = []
+    let showNextButton = false
+    let showResult = false
+    let correctCount = 0
   
-    /**
-     * @param {number} answerIndex
-     */
-    function answerQuestion(answerIndex) {
-      if (terms[currentQuestion].correctIndex === answerIndex) {
-        score++; // Increase score if the answer is correct
-      }
+    const dispatch = createEventDispatcher()
+
+    function initializeQuiz() {
+      currentTermIndex = 0
+      correctCount = 0
+      showResult = false
+      showNextButton = false
+      getNextQuestion()
     }
   
-    function nextQuestion() {
-      if (currentQuestion < terms.length - 1) {
-        currentQuestion++; // Move to the next question if available
+    
+    function getNextQuestion() {
+      selectedAnswer = ''
+      correctAnswer = currentSet.terms[currentTermIndex].definition
+      answerChoices = getAnswerChoices()
+      showNextButton = false
+    }
+  
+    
+    function getAnswerChoices() {
+      const termDefinitions = currentSet.terms.map(term => term.definition)
+      const shuffledDefinitions = termDefinitions.filter(definition => definition !== correctAnswer).sort(() => Math.random() - 0.5)
+      const answerChoices = shuffledDefinitions.slice(0, 2)
+      answerChoices.push(correctAnswer)
+      return answerChoices.sort(() => Math.random() - 0.5)
+    }
+  
+    function selectAnswer(answer: string) {
+      selectedAnswer = answer
+      showNextButton = true
+    }
+  
+    function checkAnswer() {
+      if (selectedAnswer === correctAnswer) {
+        correctCount++
+      }
+      currentTermIndex++
+      if (currentTermIndex < currentSet.terms.length) {
+        getNextQuestion()
+      } else {
+        showResult = true
       }
     }
+
+    function getScores() {
+        dispatch('saveScore', { score: correctCount })
+        restartQuiz()
+    }
+  
+  
+    function restartQuiz() {
+      initializeQuiz()
+    }
+  
+    onMount(() => {
+      initializeQuiz()
+    })
+
+  
   </script>
   
-  <section>
-    <h3>Quiz</h3>
+  <main class="m-4">
+    <h2 class="text-xl font-bold">Quiz: {currentSet.title}</h2>
+
+    
+   
+
   
-    {#if currentQuestion < terms.length}
+    {#if !showResult}
       <div>
-        <div>{terms[currentQuestion].name}</div>
-        <ul>
-          {#each terms[currentQuestion].options as option, index}
-            <li on:click="{() => answerQuestion(index)}">{option}</li>
+        <p class="text-lg font-bold">Question {currentTermIndex + 1} of {currentSet.terms.length}</p>
+        <p class="my-2">{currentSet.terms[currentTermIndex].name}</p>
+  
+        <div class="mt-4">
+          {#each answerChoices as answer}
+            <button
+              class="btn variant-outline-primary mr-2"
+              on:click={() => selectAnswer(answer)}
+              disabled={showNextButton}
+            >
+              {answer}
+            </button>
           {/each}
-        </ul>
+        </div>
+  
+        {#if showNextButton}
+          <button class="btn variant-filled-primary mt-4" on:click={checkAnswer}>Next</button>
+        {/if}
       </div>
-      <button on:click="{nextQuestion}">Next</button>
     {:else}
       <div>
-        <h4>Quiz completed!</h4>
-        <p>Your score: {score}/{terms.length}</p>
+        <p class="text-lg font-bold">Quiz Result:</p>
+        <p>You got {correctCount} out of {currentSet.terms.length} correct.</p>
+        <div>
+            <button class="btn variant-filled-primary mt-4" on:click={getScores}>Save and Restart</button>
+            <button class="btn variant-filled-primary mt-4" on:click={restartQuiz}> Discard and Restart</button>
+            
+        </div>
+        
       </div>
     {/if}
-  </section>
+
+    
+  </main>
   
