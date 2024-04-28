@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, createEventDispatcher  } from 'svelte';
+    import { onMount, createEventDispatcher  } from 'svelte'
     
     export let currentSet: {
       id: number,
@@ -7,7 +7,7 @@
       description: string,
       category: string,
       terms: { id: number, name: string, definition: string }[]
-    };
+    }
   
     let currentTermIndex = 0
     let selectedAnswer: string = ''

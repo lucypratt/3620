@@ -18,6 +18,7 @@ let flashcardsSection: HTMLDivElement
 let categories = ['Language', 'Programming', 'Science']
 
 let scores: any[] = []
+let memoryScore: any[] = []
 
 let studySet = [
 	{
@@ -301,6 +302,14 @@ $: total = currentSet.terms.length
     scores = [...scores, scoreObject]
   }
 $: console.log(scores)
+
+
+function handleSaveMemory(event) {
+	const message = event.detail.message
+	const score = event.detail.score
+	const scoreObject = { score: score, message: message}
+	memoryScore = [...memoryScore, scoreObject]
+  }
 </script>
 
 <main class="m-4">
@@ -469,8 +478,8 @@ $: console.log(scores)
 		<h2 class="text-xl font-bold text-center ">Quiz Scores:</h2>
 		{#each scores as score}
 		<div class="flex gap-2">
-			<p class="text-xl font-bold"> {score.score}/{total}, </p>
-			<p class="text-m font-bold">({score.message})</p>
+			<p class="text-xl font-bold"> {score.score}/{total}  </p>
+			<p class="text-m font-bold">({score.message}),</p>
 		</div>
 			
 		{/each}
@@ -489,7 +498,21 @@ $: console.log(scores)
 	{/if}
 
 	{#if memory}
-	<!-- <Memory {currentSet} />-->
+
+	<div class="flex gap-2 w-1/2 mt-5 mx-auto">
+		<h2 class="text-xl font-bold text-center ">Game Scores:</h2>
+		{#each memoryScore as score}
+		<div class="flex gap-2">
+			<p class="text-xl font-bold"> {score.score}/{total}  </p>
+			<p class="text-m font-bold">({score.message}),</p>
+		</div>
+			
+		{/each}
+	</div>
+	<div class="mx-auto w-1/2 my-4 flex justify-between">
+	 <div><Memory {currentSet} on:saveScore={handleSaveMemory} /></div>
+	 <i class="fa-solid fa-x inline-block align-middle hover:scale-110 hover:text-primary-500" on:click={() => { memory = false }}></i>
+	</div>
 
 	{/if}
 

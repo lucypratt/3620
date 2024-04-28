@@ -1,4 +1,5 @@
 <script lang='ts'>
+    import { createEventDispatcher  } from 'svelte'
 
 interface Term {
   id: number;
@@ -10,66 +11,39 @@ interface Term {
      terms: Term[];
    }
    
-//       export let terms: Set;
+let studySet: {
+      id: number,
+      title: string,
+      description: string,
+      category: string,
+      terms: { id: number, name: string, definition: string }[]
+    }
 
+const dispatch = createEventDispatcher()
+/* 
 let studySet = {
-		id: 1,
-		title: "Spanish Vocabulary",
-		description: "Basic Spanish vocabulary words",
-		category: "Language",
+    id: 1,
+		title: "JavaScript Basics",
+		description: "Fundamental concepts in JavaScript",
+		category: "Programming",
 		terms: [
 			{
 				id: 1,
-				name: "Hola",
-				definition: "Hello"
+				name: "Variable",
+				definition: "A container for storing data values"
 			},
 			{
 				id: 2,
-				name: "Adios",
-				definition: "Goodbye"
+				name: "Function",
+				definition: "A block of code that can be called and executed"
 			},
 			{
 				id: 3,
-				name: "Gato",
-				definition: "Cat"
-			},
-			{
-				id: 4,
-				name: "Perro",
-				definition: "Dog"
-			},
-			{
-				id: 5,
-				name: "Casa",
-				definition: "House"
-			},
-			{
-				id: 6,
-				name: "Libro",
-				definition: "Book"
-			},
-			{
-				id: 7,
-				name: "Rojo",
-				definition: "Red"
-			},
-			{
-				id: 8,
-				name: "Azul",
-				definition: "Blue"
-			},
-			{
-				id: 9,
-				name: "Verde",
-				definition: "Green"
-			},
-			{
-				id: 10,
-				name: "Amarillo",
-				definition: "Yellow"
+				name: "Array",
+				definition: "A data structure that stores a collection of elements"
 			}
 		]
-        }
+        } */
    
        type State = 'start' | 'playing' | 'won' | 'lost'
    
@@ -83,27 +57,22 @@ let studySet = {
        let matches: string[] = []
    
        function createGrid() {
-  let terms = [];
+  let terms = []
 
-  // Iterate through each term in the study set
+
   for (const term of studySet.terms) {
-    // Push the term name
-    terms.push({ id: term.id, content: term.name, type: 'name' });
-    // Push the term definition
-    terms.push({ id: term.id, content: term.definition, type: 'definition' });
+    terms.push({ id: term.id, content: term.name, type: 'name' })
+    terms.push({ id: term.id, content: term.definition, type: 'definition' })
   }
+  let shuffledTerms = shuffle(terms)
 
-  // Shuffle the terms
-  let shuffledTerms = shuffle(terms);
-
-  // Return only the term IDs for the grid
-  return shuffledTerms.map(term => term.id);
+  return shuffledTerms.map(term => term.id)
 }
+
        function shuffle<Items>(array: Items[]) {
            return array.sort(() => Math.random() - 0.5)
        }
-   
-   //    console.log(grid)
+
 
 
    function selectCard(cardIndex: number) {
@@ -163,42 +132,96 @@ state = 'won'
     }
 $: console.log("matched terms array", matchedTerms)
 
+let finished = false
+
+let scoreMessage = ''
+function saveScores() {
+    dispatch('saveScore', { score: ((matchedTerms.length) / (studySet.terms.length)), message: scoreMessage })
+        restart()
+}
+
+function restart() {
+    state = 'start'
+    selected = []
+    selectedOutline = []
+    matches = []
+    matchedTerms = []
+    finished = false
+}
+
    </script>
 
+
+
+
    {#if state === 'start'}
-   <h1> Matching Game</h1>
-   <button on:click={() => state = 'playing'}>Play</button>
+   <div class=" text-center">
+    <h1 class="text-3xl text-center mx-auto font-bold underline my-4"> Matching Game</h1>
+    <button class="btn variant-filled-primary text-center mx-auto justify-center" on:click={() => state = 'playing'}>Play</button>
+   </div>
+  
    {/if}
 
     {#if state === 'playing'}
 
-    <div class="matches">
-        {#each matchedTerms as matchedTerm}
-            <div>{matchedTerm.name} - {matchedTerm.definition}</div>
-        {/each}
+<h1 class="text-3xl text-center mx-auto font-bold underline my-4"> Matching Game</h1>
+    <div class="flex gap-10 m-20 justify-center w-1/2 mx-auto">
+        <div>
+            <div class="flex flex-wrap gap-4 ">
+                {#each studySet.terms as term}
+                    {@const isTermSelected = selectedOutline.includes(term.id)}
+                    {@const isMatched = matchedTerms.includes(term.id)}
+                    <button class="card btn variant-filled-primary text-white text-2xl {isTermSelected ? 'selected' : ''} {isMatched ? 'disabled' : ''} text-center items-center" on:click={() => selectCard(term.id)}>
+                        {term.name}
+                    </button>
+                {/each}
+            
+                {#each studySet.terms as term}
+                {@const isDefinitionSelected = selectedOutline.includes(-term.id)}
+                    <button class="card btn variant-filled-primary text-white text-2xl {isDefinitionSelected ? 'selected' : ''}" on:click={() => selectCard(-term.id)}>
+                        {term.definition}
+                    </button>
+                {/each}
+            </div>
+
+        </div>
+
+        <div>
+            <h3 class="text-3xl font-bold mb-4">Total Matches {matchedTerms.length} / {studySet.terms.length}</h3>
+            <div class="matches">
+                {#each matchedTerms as matchedTerm}
+                    <div class="text-xl my-4"><span class="font-bold">{matchedTerm.name}</span> - {matchedTerm.definition}</div>
+                {/each}
+            </div>
+            
+        </div>
+
+
+
     </div>
-    
-      
-      <div class="cards">
-        {#each studySet.terms as term}
-            {@const isTermSelected = selectedOutline.includes(term.id)}
-            <button class="card {isTermSelected ? 'selected' : ''}" on:click={() => selectCard(term.id)}>
-                <div class="matches">{term.name}</div>
-            </button>
-        {/each}
-    
-        {#each studySet.terms as term}
-        {@const isDefinitionSelected = selectedOutline.includes(-term.id)}
-            <button class="card {isDefinitionSelected ? 'selected' : ''}" on:click={() => selectCard(-term.id)}>
-                <div class="matches">{term.definition}</div>
-            </button>
-        {/each}
+    <div class="justify-center text-center w-1/2 mx-auto">
+        <button class="btn variant-filled-primary text-center mx-auto justify-center text-white" on:click={() => finished = true}>I'm Finished</button>
+
+
     </div>
+   
+    {#if finished}
+    <div class="justify-center w-1/2 mx-auto">
+        <h3 class="text-3xl font-bold mb-4 text-center">Your Score: {matchedTerms.length} / {studySet.terms.length}</h3>
+
+        <div class="text-center">
+            <input type="text" placeholder="Leave a note on score" class="p-2 rounded-md" bind:value={scoreMessage}>
+              <button class="btn variant-filled-primary mt-4 text-white" on:click={saveScores}>Save and Restart</button>
+              <button class="btn variant-filled-primary mt-4 text-white" on:click={restart}> Discard and Restart</button>
+              
+          </div>
+    </div>
+    {/if}
+    
+      
+     
     
     
-      
-      
-      
       
       
       
@@ -215,30 +238,18 @@ $: console.log("matched terms array", matchedTerms)
     {/if}
 
     <style>
-    .cards {
+   /*  .cards {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: .4rem;
-    }
-    .card {
-        height: 140px;
-        width: 140px;
-        font-size: 4rem;
-        background-color: lightblue;
-
-       
-
-        &.card:disabled {
-            background-color: lightgray;
-        }
+    } */
+ 
+   
+    .disabled {
+        background-color: lightgray;
     }
     .selected {
-            border: 4px solid red;
+            border: 4px solid black;
         }
-    .matches {
-        display: flex;
-        gap: 1rem;
-        margin-block: 2rem;
-        font-size: 3rem;
-    }
+  
     </style>
