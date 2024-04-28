@@ -61,8 +61,9 @@
       }
     }
 
+    let scoreMessage: any = ''
     function getScores() {
-        dispatch('saveScore', { score: correctCount })
+        dispatch('saveScore', { score: correctCount, message: scoreMessage })
         restartQuiz()
     }
   
@@ -111,6 +112,7 @@
         <p class="text-lg font-bold">Quiz Result:</p>
         <p>You got {correctCount} out of {currentSet.terms.length} correct.</p>
         <div>
+          <input type="text" placeholder="Enter term" class="p-2 rounded-md" bind:value={scoreMessage}>
             <button class="btn variant-filled-primary mt-4" on:click={getScores}>Save and Restart</button>
             <button class="btn variant-filled-primary mt-4" on:click={restartQuiz}> Discard and Restart</button>
             

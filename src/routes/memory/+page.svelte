@@ -79,6 +79,7 @@ let studySet = {
        let grid = createGrid()
        let maxMatches = grid.length / 2
        let selected: number[] = []
+       let selectedOutline: number[] = []
        let matches: string[] = []
    
        function createGrid() {
@@ -98,12 +99,6 @@ let studySet = {
   // Return only the term IDs for the grid
   return shuffledTerms.map(term => term.id);
 }
-
-
-
-
-
-   
        function shuffle<Items>(array: Items[]) {
            return array.sort(() => Math.random() - 0.5)
        }
@@ -112,9 +107,16 @@ let studySet = {
 
 
    function selectCard(cardIndex: number) {
-    selected = selected.concat(cardIndex)
+    if (selectedOutline.length === 2) {
+        selectedOutline = []
+    }
+    
+   selectedOutline = selectedOutline.concat(cardIndex)
+    const absCardIndex = Math.abs(cardIndex)
+    selected = selected.concat(absCardIndex)
 
-   }
+}
+
 
    function matchCards() {
     const [first, second] = selected;
@@ -152,6 +154,14 @@ state = 'won'
    $: selected.length === 2 && matchCards()
    $: maxMatches === matches.length && gameWon()
 
+   let matchedTerms
+
+
+   $: {
+        const uniqueMatches = new Set(matches)
+        matchedTerms = Array.from(uniqueMatches).map(matchId => studySet.terms.find(term => term.id === matchId))
+    }
+$: console.log("matched terms array", matchedTerms)
 
    </script>
 
@@ -163,36 +173,29 @@ state = 'won'
     {#if state === 'playing'}
 
     <div class="matches">
-        {#each matches as matchId}
-        {#each studySet.terms as term}
-        {#if term.id === matchId}
-        <div>{term.name} - {term.definition}</div>
-        {/if}
+        {#each matchedTerms as matchedTerm}
+            <div>{matchedTerm.name} - {matchedTerm.definition}</div>
         {/each}
-        {/each}
-      </div>
+    </div>
+    
       
       <div class="cards">
+        {#each studySet.terms as term}
+            {@const isTermSelected = selectedOutline.includes(term.id)}
+            <button class="card {isTermSelected ? 'selected' : ''}" on:click={() => selectCard(term.id)}>
+                <div class="matches">{term.name}</div>
+            </button>
+        {/each}
     
         {#each studySet.terms as term}
-        {@const isSelected = selected.includes(term.name)}
-       
-        <button class="card {isSelected ? 'selected' : ''}"  on:click={() => selectCard(term.id)}>
-            <div class="matches">{term.name}</div>
-        </button>
-    {/each}
-     
-    {#each studySet.terms as term}
-    {@const isSelected = selected.includes(term.definition)}
-   
-    <button class="card {isSelected ? 'selected' : ''}"  on:click={() => selectCard(term.id)}>
-        <div class="matches">{term.definition}</div>
-    </button>
-{/each}
-        
-        
-
-      </div>
+        {@const isDefinitionSelected = selectedOutline.includes(-term.id)}
+            <button class="card {isDefinitionSelected ? 'selected' : ''}" on:click={() => selectCard(-term.id)}>
+                <div class="matches">{term.definition}</div>
+            </button>
+        {/each}
+    </div>
+    
+    
       
       
       
@@ -223,14 +226,15 @@ state = 'won'
         font-size: 4rem;
         background-color: lightblue;
 
-        &.selected {
-            border: 4px solid red;
-        }
+       
 
         &.card:disabled {
             background-color: lightgray;
         }
     }
+    .selected {
+            border: 4px solid red;
+        }
     .matches {
         display: flex;
         gap: 1rem;

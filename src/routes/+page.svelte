@@ -17,7 +17,7 @@ let flashcardsSection: HTMLDivElement
 
 let categories = ['Language', 'Programming', 'Science']
 
-let scores: number[] = []
+let scores: any[] = []
 
 let studySet = [
 	{
@@ -295,11 +295,12 @@ let newEditCategory = ''
 let total = 0
 $: total = currentSet.terms.length
   function handleSaveScore(event) {
-	
-    const score = event.detail.score;
-    scores = [...scores, score]; // Store the score in the scores array
+	const message = event.detail.message
+    const score = event.detail.score
+	const scoreObject = { score: score, message: message}
+    scores = [...scores, scoreObject]
   }
-
+$: console.log(scores)
 </script>
 
 <main class="m-4">
@@ -405,7 +406,7 @@ $: total = currentSet.terms.length
 
 	<!--Choose How to Study-->
 	<div>
-		<h2 class="text-2xl font-bold text-center my-5">Choose How to Study</h2>
+		<h2 class="text-2xl font-bold text-center my-5">Choose How to Study <span class="text-primary-500 underline">{currentSet.title}</span></h2>
 		<div class="flex gap-4 justify-center">
 			<button class="btn variant-outline-primary p-20 font-bold text-3xl hover:variant-filled-primary" on:click={() => {quiz = true}}>Quiz</button>
 			<button class="btn variant-outline-primary p-20 font-bold text-3xl hover:variant-filled-primary" on:click={() => {memory = true}}>Memory<br> Game</button>
@@ -467,8 +468,9 @@ $: total = currentSet.terms.length
 	<div class="flex gap-2 w-1/2 mt-5 mx-auto">
 		<h2 class="text-xl font-bold text-center ">Quiz Scores:</h2>
 		{#each scores as score}
-		<div class="">
-			<p class="text-xl font-bold"> {score}/{total}, </p>
+		<div class="flex gap-2">
+			<p class="text-xl font-bold"> {score.score}/{total}, </p>
+			<p class="text-m font-bold">({score.message})</p>
 		</div>
 			
 		{/each}
