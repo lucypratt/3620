@@ -1,6 +1,6 @@
 # Learning App
 
-Welcome to my learning app. See the [live URL here](3620.vercel.app).
+Welcome to my learning app. See the [live URL here](https://3620-lucypratts-projects.vercel.app/).
 
 
 ## User Stories
