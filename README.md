@@ -1,38 +1,39 @@
-# create-svelte
+# Learning App
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+Welcome to my learning app. 
 
-## Creating a project
 
-If you're seeing this, you've probably already done this step. Congrats!
+## User Stories
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+- Users will be able to add new terms/vocabulary related to web development along with definitions
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+- Users will have the ability to create new sets of terms and definitions
 
-## Developing
+- Users can create categories
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+- Users can remove categories 
 
-```bash
-npm run dev
+- Users can edit categories
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+- Users will be able to assign sets categories based on topics such as HTML, CSS, JavaScript, etc. 
 
-## Building
+- Users will be able to edit existing terms and definitions
 
-To create a production version of your app:
+- Users can delete terms and definitions/examples
 
-```bash
-npm run build
-```
+- Users can sort sets based on topic. Meaning sets are sorted into categories
 
-You can preview the production build with `npm run preview`.
+- Users will be able to play a matching game
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+- A user can change the set they play the matching game with 
+
+- A user can keep or discard their score so it does or doesn’t show up on their scoreboard 
+
+- A user can add notes to their scores
+
+- A user can take a quiz based on their set
+
+- A user can record their score or discard it  
+
+## Why Svelte?
+I chose to use Svelte because out of all the frameworks we covered this semester, this one made the most sense to me. I like that creating components is so simple and it feels like the syntax/set up structure is much simpler. I also like that this "simple" feel made it easier for me to create a dynamic single webpage for my app using conditional logic.
