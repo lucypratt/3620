@@ -112,7 +112,7 @@
         <p class="text-lg font-bold">Quiz Result:</p>
         <p>You got {correctCount} out of {currentSet.terms.length} correct.</p>
         <div>
-          <input type="text" placeholder="Enter term" class="p-2 rounded-md" bind:value={scoreMessage}>
+          <input type="text" placeholder="Leave a note on score" class="p-2 rounded-md" bind:value={scoreMessage}>
             <button class="btn variant-filled-primary mt-4" on:click={getScores}>Save and Restart</button>
             <button class="btn variant-filled-primary mt-4" on:click={restartQuiz}> Discard and Restart</button>
             
