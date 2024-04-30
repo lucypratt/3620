@@ -324,6 +324,7 @@ function handleSaveMemory(event) {
 				<div class="flex my-2">
 					<input type="text" placeholder="Enter new category" class="p-2 rounded-md" bind:value={newCategoryName}>
 					<button class="ml-2 btn variant-filled-primary" on:click={addNewCategory}>Add</button>
+					<button class="btn variant-outline-primary ml-2" on:click={() => { newCategoryShow = false }}>Cancel</button>
 				</div>
 				
 				{/if}
